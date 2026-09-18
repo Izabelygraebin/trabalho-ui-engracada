@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Auditoria de Privacidade</title>
+    <style>
+        * { box-sizing: border-box; user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        body {
+            margin: 0; padding: 0; min-height: 100vh;
+            background: #1a1b26; color: #a9b1d6;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+
+        .tela { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 550px; position: relative; }
+        .tela.ativa { display: flex; animation: fade 0.5s; }
+        @keyframes fade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card {
+            background: #24283b; padding: 40px; border-radius: 16px; position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; border: 1px solid #414868;
+        }
+
+        h1 { color: #f7768e; font-size: 22px; margin-top: 0; margin-bottom: 10px; text-align: center; }
+        p { text-align: center; margin-bottom: 30px; font-size: 15px; color: #c0caf5; line-height: 1.5; }
+
+        .btn-grupo { display: flex; justify-content: center; gap: 20px; position: relative; height: 60px; }
+        button {
+            padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px;
+            font-weight: bold; cursor: pointer; transition: all 0.3s ease-in-out; 
+        }
+        .btn-sim { background: #7aa2f7; color: #1a1b26; z-index: 2;}
+        .btn-nao { background: #f7768e; color: #1a1b26; position: absolute; right: 80px; top: 0; z-index: 3;}
+
+        /* O Rosto do Sistema */
+        .fiscal { text-align: center; margin-bottom: 15px; }
+        .rosto { font-size: 45px; color: #e0af68; font-weight: bold; letter-spacing: 2px;}
+        .fala {
+            background: #414868; color: #fff; padding: 8px 15px; border-radius: 20px;
+            font-size: 13px; font-weight: bold; margin-top: 10px; display: inline-block;
+        }
+
+        /* Formulário */
+        .campo { margin-bottom: 15px; display: flex; flex-direction: column; }
+        label { margin-bottom: 6px; font-size: 13px; color: #9aa5ce; font-weight: bold;}
+        input, select {
+            padding: 10px; border-radius: 8px; border: 2px solid #414868;
+            background: #1a1b26; color: #c0caf5; outline: none; font-size: 14px; transition: 0.3s;
+        }
+        
+        .termos { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; margin-top: 20px; margin-bottom: 20px;}
+        input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; margin-top: 2px; }
+        .letras-miudas { display: block; font-size: 9px; color: #565f89; margin-top: 4px; line-height: 1.3;}
+
+        .btn-enviar { width: 100%; background: #9ece6a; color: #1a1b26; padding: 15px; }
+        
+        .alerta-input { border-color: #f7768e !important; background: rgba(247, 118, 142, 0.1) !important; }
+        .fala-brava { background: #f7768e !important; color: #1a1b26 !important; transform: scale(1.05); }
+
+        /* TELA FINAL (ANÚNCIO) */
+        #tela-anuncio { background: rgba(0,0,0,0.85); position: fixed; top:0; left:0; width: 100vw; height: 100vh; justify-content: center; align-items: center; z-index: 9999; }
+        .popup { background: #ff0055; color: white; padding: 40px; border-radius: 0; border: 10px solid yellow; text-align: center; width: 80%; max-width: 600px; position: relative; animation: piscar 0.5s infinite alternate; }
+        @keyframes piscar { from { box-shadow: 0 0 20px yellow; } to { box-shadow: 0 0 60px yellow; } }
+        
+        .timer { font-size: 40px; font-weight: 900; margin: 20px 0; color: yellow; }
+        
+        /* O "X" falso atualizado */
+        .btn-x { 
+            position: absolute; top: -15px; right: -15px; 
+            background: black; color: white; border: 2px solid white; 
+            border-radius: 50%; width: 35px; height: 35px; 
+            font-weight: bold; cursor: pointer; display: flex; 
+            align-items: center; justify-content: center; font-size: 16px; 
+            z-index: 10000; transition: top 0.1s, left 0.1s; 
+        }
+        
+        .btn-fake-download { background: lime; color: black; font-size: 24px; font-weight: 900; padding: 15px 30px; border: none; cursor: pointer; text-transform: uppercase; width: 100%; transition: 0.1s; }
+        
+        #area-caos { display: flex; flex-direction: column; gap: 15px; }
+    </style>
+</head>
+<body>
+
+    <!-- TELA 1: A ARMADILHA INICIAL -->
+    <div id="tela-inicial" class="tela ativa">
+        <div class="card">
+            <h1>⚠️ Termo de Transparência</h1>
+            <p>Para fins de auditoria acadêmica, você autoriza espelhar o histórico da sua <b>Aba Anônima</b> no projetor da sala agora?</p>
+            <div class="btn-grupo">
+                <button class="btn-sim" onclick="iniciarFormulario()">Sim, não devo nada!</button>
+                <button class="btn-nao" id="btn-nao">Não 😏</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA 2: O FORMULÁRIO JULGADOR -->
+    <div id="tela-form" class="tela">
+        <div class="fiscal">
+            <div id="rosto" class="rosto">( ಠ_ಠ )</div>
+            <div id="fala" class="fala">Sabia que você ia ceder. Preencha logo.</div>
+        </div>
+
+        <div class="card" style="padding: 25px 40px;">
+            <div class="campo">
+                <label>Nome do Réu (Cuidado com o CapsLock):</label>
+                <input type="text" id="input-nome" placeholder="Digite sem gritar..." autocomplete="off">
+            </div>
+
+            <div class="campo">
+                <label>Data de Nascimento (dd/mm/aaaa):</label>
+                <input type="text" id="input-data" placeholder="Só números..." autocomplete="off">
+            </div>
+
+            <div class="campo">
+                <label>Senha super segura:</label>
+                <input type="password" id="input-senha" placeholder="Não use '123456'..." autocomplete="off">
+            </div>
+
+            <div class="campo">
+                <label>Saúde Mental atual:</label>
+                <select id="select-mental">
+                    <option value="0">Selecione...</option>
+                    <option value="otima">Excelente, vida perfeita 🌈</option>
+                    <option value="cafe">À base de café e ódio ☕</option>
+                    <option value="choro">Chorando em posição fetal 🚿</option>
+                </select>
+            </div>
+
+            <div class="termos">
+                <input type="checkbox" id="check-termos">
+                <div>
+                    <label for="check-termos">Li e concordo com os Termos de Uso (9.421 páginas)</label>
+                    <span class="letras-miudas">*Ao marcar, você vende sua alma corporativa e aceita adotar um mico-leão-dourado em nome do professor.</span>
+                </div>
+            </div>
+
+            <button class="btn-enviar" id="btn-enviar">ASSINAR SENTENÇA</button>
+        </div>
+    </div>
+
+    <!-- TELA 3: O ANÚNCIO (CORRIGIDO E MAIS CAÓTICO) -->
+    <div id="tela-anuncio" class="tela">
+        <div class="popup" id="caixa-popup">
+            <div class="btn-x" id="btn-x">X</div>
+            <h1 style="color: white; font-size: 30px;">🚨 VOCÊ É O VISITANTE 999.999! 🚨</h1>
+            <p style="color: white; font-size: 18px;">Feche este anúncio para resgatar seu iPhone 20 Pro Max antes que o tempo acabe!</p>
+            
+            <div id="area-caos">
+                <div class="timer" id="cronometro">15.00</div>
+                <button class="btn-fake-download" id="btn-fake">RESGATAR PRÊMIO AGORA!</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. O BOTÃO "NÃO" SORRATEIRO ---
+        const btnNao = document.getElementById('btn-nao');
+        const falasFofoqueiras = ["Não 👀", "Não 🤭", "Não 🤫", "Não 😜", "Não 😏"];
+
+        btnNao.addEventListener('mouseenter', () => {
+            btnNao.innerText = falasFofoqueiras[Math.floor(Math.random() * falasFofoqueiras.length)];
+            const maxX = 250; const maxY = 150;
+            const x = (Math.random() - 0.5) * maxX * 1.5;
+            const y = (Math.random() - 0.5) * maxY * 1.5;
+            btnNao.style.transform = `translate(${x}px, ${y}px)`;
+        });
+
+        // --- TRANSIÇÃO PARA FORMULÁRIO ---
+        let tempoInicioForm;
+        function iniciarFormulario() {
+            document.getElementById('tela-inicial').classList.remove('ativa');
+            document.getElementById('tela-form').classList.add('ativa');
+            tempoInicioForm = Date.now();
+        }
+
+        // --- SISTEMA DE JULGAMENTO ---
+        const rosto = document.getElementById('rosto');
+        const fala = document.getElementById('fala');
+        const inputNome = document.getElementById('input-nome');
+        const inputData = document.getElementById('input-data');
+        const inputSenha = document.getElementById('input-senha');
+        const selectMental = document.getElementById('select-mental');
+        const checkTermos = document.getElementById('check-termos');
+        const btnEnviar = document.getElementById('btn-enviar');
+
+        function mudarHumor(cara, texto, bravo = false) {
+            rosto.innerText = cara; fala.innerText = texto;
+            if (bravo) fala.classList.add('fala-brava'); else fala.classList.remove('fala-brava');
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (fala.classList.contains('fala-brava') || document.getElementById('tela-anuncio').classList.contains('ativa')) return;
+            const x = (e.clientX / window.innerWidth - 0.5) * 20;
+            rosto.style.transform = `translateX(${x}px)`;
+        });
+
+        inputNome.addEventListener('keyup', (e) => {
+            if (e.getModifierState("CapsLock")) mudarHumor("( ÒДÓ )", "DESLIGA O CAPS LOCK! TÁ GRITANDO POR QUÊ?!", true);
+            else mudarHumor("( ಠ_ಠ )", "Isso, abaixa o tom comigo...", false);
+        });
+
+        inputData.addEventListener('input', (e) => {
+            if (/[a-zA-Z]/.test(e.target.value)) {
+                inputData.classList.add('alerta-input');
+                mudarHumor("( 🤦 )", "Coloca a data em NÚMEROS! Não é pra contar a história da sua vida!", true);
+            } else {
+                inputData.classList.remove('alerta-input'); mudarHumor("( ಠ_ಠ )", "Estou de olho...", false);
+            }
+        });
+
+        inputSenha.addEventListener('input', (e) => {
+            const s = e.target.value.toLowerCase();
+            if (s === "123456" || s === "senha" || s === "12345678" || s === "admin") {
+                inputSenha.classList.add('alerta-input'); mudarHumor("( 🤣 )", `Sério? '${s}'? Até meu avô hackeia isso.`, true);
+            } else if (s.length > 0) inputSenha.classList.remove('alerta-input');
+        });
+
+        selectMental.addEventListener('change', () => {
+            if (selectMental.value === "otima") mudarHumor("( 🤥 )", "Mentira. Ninguém na faculdade está 'Excelente'.", true);
+            else if (selectMental.value === "cafe") mudarHumor("( ☕ )", "Eu também. Meus servidores rodam a base de RedBull.", false);
+            else if (selectMental.value === "choro") mudarHumor("( 🥺 )", "Poxa... quer um abraço virtual?", false);
+        });
+
+        checkTermos.addEventListener('change', (e) => {
+            if (checkTermos.checked) {
+                const tempo = (Date.now() - tempoInicioForm) / 1000;
+                if (tempo < 7) {
+                    e.preventDefault(); checkTermos.checked = false;
+                    mudarHumor("( ಠ_ಠ ) => ❌", `Impossível ler 9.421 páginas em ${tempo.toFixed(1)}s. Leia!`, true);
+                    tempoInicioForm = Date.now();
+                } else mudarHumor("( 😈 )", "Alma vendida com sucesso.", false);
+            }
+        });
+
+        let cliques = 0; let timerClique;
+        btnEnviar.addEventListener('click', () => {
+            cliques++;
+            if (cliques === 1) {
+                mudarHumor("( ಠ_ಠ )", "Processando dados...", false);
+                btnEnviar.innerText = "Analisando...";
+                timerClique = setTimeout(() => {
+                    if (checkTermos.checked) abrirAnuncio();
+                    else {
+                        mudarHumor("( 😑 )", "Assine os termos primeiro.", true);
+                        btnEnviar.innerText = "ASSINAR SENTENÇA"; cliques = 0;
+                    }
+                }, 1000);
+            } else if (cliques > 1) {
+                clearTimeout(timerClique);
+                btnEnviar.innerText = "AI! DUPLO CLIQUE DÓI!";
+                mudarHumor("( 😭 )", "AGRESSÃO FÍSICA DETECTADA!", true);
+                btnEnviar.style.transform = "rotate(3deg) scale(0.95)";
+                setTimeout(() => { btnEnviar.style.transform = "none"; cliques = 0; btnEnviar.innerText = "ASSINAR SENTENÇA"; }, 2000);
+            }
+        });
+
+        // --- TELA 3: LÓGICA DO ANÚNCIO (CORRIGIDA) ---
+        function abrirAnuncio() {
+            document.getElementById('tela-form').classList.remove('ativa');
+            document.getElementById('tela-anuncio').classList.add('ativa');
+            
+            let tempoLeft = 15.00;
+            const timerEl = document.getElementById('cronometro');
+            
+            const interval = setInterval(() => {
+                tempoLeft -= 0.01;
+                if (tempoLeft <= 0) {
+                    tempoLeft = 0;
+                    clearInterval(interval);
+                    document.getElementById('btn-x').style.display = 'none';
+                    timerEl.innerText = "0.00"; timerEl.style.color = "red";
+                    alert("TEMPO ESGOTADO! O seu histórico já foi projetado com sucesso na sala!");
+                    location.reload();
+                } else timerEl.innerText = tempoLeft.toFixed(2);
+            }, 10);
+        }
+
+        // O "X" FUGITIVO DENTRO DA CAIXA + DEBOCHE
+        const btnX = document.getElementById('btn-x');
+        const popup = document.getElementById('caixa-popup');
+        const falasX = ["Errou!", "Lento!", "Quase!", "Ops!", "Aqui!"];
+        
+        btnX.addEventListener('mouseover', () => {
+            // Remove a âncora "right" para o "left" funcionar corretamente
+            btnX.style.right = 'auto'; 
+            
+            // Calcula posições apenas DENTRO do anúncio
+            const maxX = popup.clientWidth - 50;
+            const maxY = popup.clientHeight - 50;
+            
+            const x = Math.max(10, Math.random() * maxX);
+            const y = Math.max(10, Math.random() * maxY);
+            
+            btnX.style.left = `${x}px`;
+            btnX.style.top = `${y}px`;
+
+            // Debocha do usuário
+            btnX.innerText = falasX[Math.floor(Math.random() * falasX.length)];
+            btnX.style.width = "auto";
+            btnX.style.padding = "5px 10px";
+            btnX.style.borderRadius = "10px";
+        });
+
+        btnX.addEventListener('click', () => {
+            alert("VOCÊ CLICOU NO X!! Parabéns, seu reflexo é nível Jedi. Apresentação encerrada com nota 10!");
+            location.reload();
+        });
+
+        // O BOTÃO VERDE CAÓTICO (Inverte posição com o cronômetro)
+        const btnFake = document.getElementById('btn-fake');
+        const areaCaos = document.getElementById('area-caos');
+        let ordemNormal = true;
+
+        btnFake.addEventListener('mouseenter', () => {
+            if (ordemNormal) {
+                areaCaos.style.flexDirection = "column-reverse";
+            } else {
+                areaCaos.style.flexDirection = "column";
+            }
+            ordemNormal = !ordemNormal;
+        });
+
+        btnFake.addEventListener('click', () => {
+            alert("Instalando Baidu Antivírus e 14 Toolbars no seu navegador...");
+        });
+    </script>
+</body>
+</html>
